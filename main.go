@@ -1,17 +1,17 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 	"time"
 )
 
 func main() {
 
-	fmt.Println("Creating ServeMux to route requests...")
+	log.Println("Creating ServeMux to route requests...")
 	ServeMux := http.NewServeMux()
 
-	fmt.Println("Creating server struct...")
+	log.Println("Creating server struct...")
 	server := &http.Server{
 		Addr:           ":8080",
 		Handler:        ServeMux,
@@ -23,7 +23,7 @@ func main() {
 	fileHandler := http.FileServer(http.Dir("."))
 	ServeMux.Handle("/", fileHandler)
 
-	fmt.Println("Starting server...")
-	server.ListenAndServe()
+	log.Println("Starting server...")
+	log.Fatal(server.ListenAndServe())
 
 }
