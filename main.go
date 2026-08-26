@@ -20,6 +20,9 @@ func main() {
 		MaxHeaderBytes: 1 << 20,
 	}
 
+	fileHandler := http.FileServer(http.Dir("."))
+	ServeMux.Handle("/", fileHandler)
+
 	fmt.Println("Starting server...")
 	server.ListenAndServe()
 
