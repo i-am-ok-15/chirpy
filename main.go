@@ -13,10 +13,18 @@ type apiConfig struct {
 }
 
 func (a *apiConfig) handlerHitCount(w http.ResponseWriter, _ *http.Request) {
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	hitCount := a.fileserverHits.Load()
-	hitCountStr := fmt.Sprintf("Hits: %d", hitCount)
+
+	hitCountStr := fmt.Sprintf(
+		`<html>
+			<body>
+				<h1>Welcome, Chirpy Admin</h1>
+				<p>Chirpy has been visited %d times!</p>
+			</body>
+		</html>`, hitCount)
+
 	w.Write([]byte(hitCountStr))
 }
 
@@ -54,9 +62,10 @@ func main() {
 
 	fileHandler := http.StripPrefix("/app", http.FileServer(http.Dir(".")))
 
-	mux.HandleFunc("GET /healthz", handlerReadiness)
-	mux.HandleFunc("GET /metrics", apiCfg.handlerHitCount)
-	mux.HandleFunc("POST /reset", apiCfg.handlerReset)
+	mux.HandleFunc("GET /api/healthz", handlerReadiness)
+
+	mux.HandleFunc("POST /admin/reset", apiCfg.handlerReset)
+	mux.HandleFunc("GET /admin/metrics", apiCfg.handlerHitCount)
 
 	mux.Handle("/app/", apiCfg.middlewareMetricsInc(fileHandler))
 
