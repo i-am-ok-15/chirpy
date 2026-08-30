@@ -28,3 +28,28 @@ Make sure you have the following installed on your machine:
    ```bash
    git clone [https://github.com/i-am-ok-15/chirpy.git](https://github.com/i-am-ok-15/chirpy.git)
    cd chirpy
+
+
+2. **Initialize / Download dependencies:
+    ```bash
+    go mod tidy
+
+3. **Build and run the server:
+    ```bash
+    go build -o out && ./out
+
+## API Endpoints
+
+| Endpoint          | Method        | Description |
+| -----------       | -----------   | -----------
+| /app/             | GET           | Servers the frontend web client |
+| /api/healthz      | GET           | Health check endpoint (returns OK) |
+| /api/metrics      | GET           | Returns the total count of page/file server hits |
+| /api/reset        | POST          | Resets the metrics counter back to 0 |
+| /api/chirps       | GET / POST    | Retrieve or create chirps
+
+## Running Tests
+
+To run tests locally using Go:
+    ```bash
+    go test ./...
