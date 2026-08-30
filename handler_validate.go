@@ -4,7 +4,27 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 )
+
+func profanityChecker(messageBody string) string {
+	profanity := [3]string{"kerfuffle", "sharbert", "fornax"}
+	lowersWords := strings.Split(messageBody, " ")
+	cleanWords := []string{}
+
+	for _, word := range lowersWords {
+		lowerWord := strings.ToLower(word)
+		newWord := word
+		for _, profanityWord := range profanity {
+			if lowerWord == profanityWord {
+				newWord = "****"
+			}
+		}
+		cleanWords = append(cleanWords, newWord)
+	}
+
+	return strings.Join(cleanWords, " ")
+}
 
 func handlerValidateChirp(w http.ResponseWriter, r *http.Request) {
 	type chirp struct {
@@ -13,6 +33,10 @@ func handlerValidateChirp(w http.ResponseWriter, r *http.Request) {
 
 	type validResponse struct {
 		Valid bool `json:"valid"`
+	}
+
+	type cleanedResponse struct {
+		CleanedString string `json:"cleaned_body"`
 	}
 
 	decoder := json.NewDecoder((r.Body))
@@ -30,7 +54,7 @@ func handlerValidateChirp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respondWithJSON(w, http.StatusOK, validResponse{
-		Valid: true,
+	respondWithJSON(w, http.StatusOK, cleanedResponse{
+		CleanedString: profanityChecker(message.Body),
 	})
 }
