@@ -26,11 +26,14 @@ func (a *apiConfig) handlerHitCount(w http.ResponseWriter, _ *http.Request) {
 			</body>
 		</html>`, hitCount)
 
-	w.Write([]byte(hitCountStr))
+	dat := []byte(hitCountStr)
+	w.Write(dat)
 }
 
 func (a *apiConfig) handlerReset(w http.ResponseWriter, _ *http.Request) {
 	a.fileserverHits.Store(0)
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Hits reset to 0"))
 }
 
 func (cfg *apiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
@@ -43,16 +46,38 @@ func (cfg *apiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
 func handlerReadiness(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("OK"))
+	dat := []byte("OK")
+	w.Write(dat)
+}
+
+func respondWithError(w http.ResponseWriter, code int, msg string) {
+	type errorResponse struct {
+		Error string `json:"error"`
+	}
+
+	respBody := errorResponse{
+		Error: msg,
+	}
+
+	respondWithJSON(w, code, respBody)
+}
+
+func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
+	dat, err := json.Marshal(payload)
+	if err != nil {
+		log.Printf("Error marshalling JSON: %s", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	w.Write(dat)
 }
 
 func handlerValidateChirp(w http.ResponseWriter, r *http.Request) {
 	type chirp struct {
 		Body string `json:"body"`
-	}
-
-	type errorResponse struct {
-		Error string `json:"error"`
 	}
 
 	type validResponse struct {
@@ -64,53 +89,19 @@ func handlerValidateChirp(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(&message)
 	if err != nil {
 		log.Printf("Error decoding message: %s", err)
-		respBody := errorResponse{}
-		respBody.Error = "Something went wrong"
-		dat, _ := json.Marshal(respBody)
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(500)
-		w.Write(dat)
+		respondWithError(w, http.StatusInternalServerError, "Error decoding message")
 		return
 	}
 
 	if len(message.Body) > 140 {
-		respBody := errorResponse{}
-		respBody.Error = "Chirp is too long"
-		dat, err := json.Marshal(respBody)
-		if err != nil {
-			log.Printf("Error marshalling JSON: %s", err)
-			respBody.Error = "Something went wrong"
-			dat, err = json.Marshal(respBody)
-
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(500)
-			w.Write(dat)
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(400)
-		w.Write(dat)
-
-	} else {
-		respBody := validResponse{}
-		respBody.Valid = true
-		dat, err := json.Marshal(respBody)
-		if err != nil {
-			log.Printf("Error marshalling JSON: %s", err)
-			respBody := errorResponse{}
-			respBody.Error = "Something went wrong"
-			dat, err = json.Marshal(respBody)
-
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(500)
-			w.Write(dat)
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(200)
-		w.Write(dat)
+		log.Printf("Chirp is too long.")
+		respondWithError(w, http.StatusBadRequest, "Chirp is too long")
+		return
 	}
+
+	respondWithJSON(w, http.StatusOK, validResponse{
+		Valid: true,
+	})
 }
 
 func main() {
