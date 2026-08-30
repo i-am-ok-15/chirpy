@@ -48,10 +48,3 @@ Make sure you have the following installed on your machine:
 | /api/metrics      | GET           | Returns the total count of page/file server hits |
 | /api/reset        | POST          | Resets the metrics counter back to 0 |
 | /api/chirps       | GET / POST    | Retrieve or create chirps
-
-## Running Tests
-
-To run tests locally using Go:
-    ```bash
-    go test ./...
-    ```
