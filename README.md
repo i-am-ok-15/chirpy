@@ -30,11 +30,11 @@ Make sure you have the following installed on your machine:
    cd chirpy
 
 
-2. **Initialize / Download dependencies:
+2. **Initialize / Download dependencies:**
     ```bash
     go mod tidy
 
-3. **Build and run the server:
+3. **Build and run the server:**
     ```bash
     go build -o out && ./out
 
