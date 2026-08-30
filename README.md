@@ -27,6 +27,7 @@ Make sure you have the following installed on your machine:
 1. **Clone the repository:**
    ```bash
    git clone [https://github.com/i-am-ok-15/chirpy.git](https://github.com/i-am-ok-15/chirpy.git)
+
    cd chirpy
 
 
@@ -52,4 +53,5 @@ Make sure you have the following installed on your machine:
 
 To run tests locally using Go:
     ```bash
-    go test ./...```
+    go test ./...
+    ```
