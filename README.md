@@ -52,4 +52,4 @@ Make sure you have the following installed on your machine:
 
 To run tests locally using Go:
     ```bash
-    go test ./...
+    go test ./...```
