@@ -1,8 +1,8 @@
 -- +goose Up
 CREATE TABLE users (
-    id INTEGER PRIMARY KEY,
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT Now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT Now(),
     email TEXT NOT NULL UNIQUE
 );
 
