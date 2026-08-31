@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -22,10 +23,23 @@ func (a *apiConfig) handlerHitCount(w http.ResponseWriter, _ *http.Request) {
 	w.Write(dat)
 }
 
-func (a *apiConfig) handlerReset(w http.ResponseWriter, _ *http.Request) {
+func (a *apiConfig) handlerReset(w http.ResponseWriter, r *http.Request) {
+	if a.platform != "dev" {
+		log.Printf("Request received from forbidden user.")
+		respondWithError(w, http.StatusForbidden, "Error with request permissions")
+		return
+	}
+
+	err := a.dbQueries.DeleteUsers(r.Context())
+	if err != nil {
+		log.Printf("Error deleting user records")
+		respondWithError(w, http.StatusInternalServerError, "Error deleting user data")
+		return
+	}
+
 	a.fileserverHits.Store(0)
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Hits reset to 0"))
+	w.Write([]byte("All user rows deleted and hits reset to 0"))
 }
 
 func (cfg *apiConfig) middlewareMetricsInc(next http.Handler) http.Handler {

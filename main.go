@@ -18,6 +18,7 @@ import (
 type apiConfig struct {
 	fileserverHits atomic.Int32
 	dbQueries      *database.Queries
+	platform       string
 }
 
 type User struct {
@@ -39,6 +40,7 @@ func main() {
 
 	apiCfg := apiConfig{
 		dbQueries: dbQueries,
+		platform:  os.Getenv("PLATFORM"),
 	}
 
 	log.Println("Creating server struct...")
