@@ -89,9 +89,18 @@ func (a *apiConfig) handlerGetChirps(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// next step is to iterate through chirpArray and unpack each
-	// value and build an API chirp (from main.go) this needs to be
-	// added to a new slice ([]APIchirp) before then sending as a JSON response.
+	APIChirps := []Chirp{}
 
-	respondWithJSON(w, http.StatusOK, chirpArray)
+	for _, chirp := range chirpArray {
+		chirpStruct := Chirp{
+			ID:        chirp.ID,
+			CreatedAt: chirp.CreatedAt,
+			UpdatedAt: chirp.UpdatedAt,
+			Body:      chirp.Body,
+			UserID:    chirp.UserID,
+		}
+		APIChirps = append(APIChirps, chirpStruct)
+	}
+
+	respondWithJSON(w, http.StatusOK, APIChirps)
 }
