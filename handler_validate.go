@@ -5,6 +5,9 @@ import (
 	"log"
 	"net/http"
 	"strings"
+
+	"github.com/google/uuid"
+	"github.com/i-am-ok-15/chirpy/internal/database"
 )
 
 func profanityChecker(messageBody string) string {
@@ -35,27 +38,45 @@ func lengthChecker(messageBody string) bool {
 	}
 }
 
-func handlerChirps(w http.ResponseWriter, r *http.Request) {
-	type cleanedChirp struct {
-		CleanedChirp string `json:"cleaned_chirp"`
+func (a *apiConfig) handlerChirps(w http.ResponseWriter, r *http.Request) {
+	type parameters struct {
+		Body   string    `json:"body"`
+		UserID uuid.UUID `json:"user_id"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
-	message := chirp{}
-	err := decoder.Decode(&message)
+	params := parameters{}
+	err := decoder.Decode(&params)
 	if err != nil {
 		log.Printf("Error decoding message: %s", err)
 		respondWithError(w, http.StatusInternalServerError, "Error decoding message")
 		return
 	}
-	if lengthChecker(message.Body) == false {
+
+	if lengthChecker(params.Body) == false {
 		respondWithError(w, http.StatusBadRequest, "Chirp is too long")
 		return
 	}
-	cleanedResponse := profanityChecker(message.Body)
 
-	respondWithJSON(w, http.StatusOK, cleanedChirp{
-		CleanedChirp: cleanedResponse,
+	params.Body = profanityChecker(params.Body)
+
+	createdChirp, err := a.dbQueries.CreateChirp(r.Context(), database.CreateChirpParams{
+		Body:   params.Body,
+		UserID: params.UserID,
 	})
+	if err != nil {
+		log.Printf("Error creating user: %s", err)
+		respondWithError(w, http.StatusBadRequest, "Error creating user")
+		return
+	}
 
+	chirp := Chirp{
+		ID:        createdChirp.ID,
+		CreatedAt: createdChirp.CreatedAt,
+		UpdatedAt: createdChirp.UpdatedAt,
+		Body:      createdChirp.Body,
+		UserID:    createdChirp.UserID,
+	}
+
+	respondWithJSON(w, http.StatusCreated, chirp)
 }
