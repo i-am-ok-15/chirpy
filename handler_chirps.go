@@ -104,3 +104,30 @@ func (a *apiConfig) handlerGetChirps(w http.ResponseWriter, r *http.Request) {
 
 	respondWithJSON(w, http.StatusOK, APIChirps)
 }
+
+func (a *apiConfig) handlerGetChirp(w http.ResponseWriter, r *http.Request) {
+	requestedID := r.PathValue("chirpID")
+	parsedUUID, err := uuid.Parse(requestedID)
+	if err != nil {
+		log.Printf("Error parsing id to uuid: %s", err)
+		respondWithError(w, http.StatusInternalServerError, "Error parsing id to uuid")
+		return
+	}
+
+	singleChirp, err := a.dbQueries.GetChirp(r.Context(), parsedUUID)
+	if err != nil {
+		log.Printf("Error fetching chirp: %s", err)
+		respondWithError(w, http.StatusNotFound, "Error fetching chirp")
+		return
+	}
+
+	APIChirp := Chirp{
+		ID:        singleChirp.ID,
+		CreatedAt: singleChirp.CreatedAt,
+		UpdatedAt: singleChirp.UpdatedAt,
+		Body:      singleChirp.Body,
+		UserID:    singleChirp.UserID,
+	}
+
+	respondWithJSON(w, http.StatusOK, APIChirp)
+}
