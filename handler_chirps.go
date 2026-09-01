@@ -80,3 +80,18 @@ func (a *apiConfig) handlerChirps(w http.ResponseWriter, r *http.Request) {
 
 	respondWithJSON(w, http.StatusCreated, chirp)
 }
+
+func (a *apiConfig) handlerGetChirps(w http.ResponseWriter, r *http.Request) {
+	chirpArray, err := a.dbQueries.GetChirps(r.Context())
+	if err != nil {
+		log.Printf("Error fetching chirps: %s", err)
+		respondWithError(w, http.StatusInternalServerError, "Error fetching chirps")
+		return
+	}
+
+	// next step is to iterate through chirpArray and unpack each
+	// value and build an API chirp (from main.go) this needs to be
+	// added to a new slice ([]APIchirp) before then sending as a JSON response.
+
+	respondWithJSON(w, http.StatusOK, chirpArray)
+}
