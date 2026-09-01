@@ -35,20 +35,12 @@ func lengthChecker(messageBody string) bool {
 	}
 }
 
-func handlerValidateChirp(w http.ResponseWriter, r *http.Request) {
-	type chirp struct {
-		Body string `json:"body"`
+func handlerChirps(w http.ResponseWriter, r *http.Request) {
+	type cleanedChirp struct {
+		CleanedChirp string `json:"cleaned_chirp"`
 	}
 
-	type validResponse struct {
-		Valid bool `json:"valid"`
-	}
-
-	type cleanedResponse struct {
-		CleanedString string `json:"cleaned_body"`
-	}
-
-	decoder := json.NewDecoder((r.Body))
+	decoder := json.NewDecoder(r.Body)
 	message := chirp{}
 	err := decoder.Decode(&message)
 	if err != nil {
@@ -56,15 +48,14 @@ func handlerValidateChirp(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusInternalServerError, "Error decoding message")
 		return
 	}
-
 	if lengthChecker(message.Body) == false {
 		respondWithError(w, http.StatusBadRequest, "Chirp is too long")
 		return
 	}
+	cleanedResponse := profanityChecker(message.Body)
 
-	CleanedBody := profanityChecker(message.Body)
-
-	respondWithJSON(w, http.StatusOK, cleanedResponse{
-		CleanedString: CleanedBody,
+	respondWithJSON(w, http.StatusOK, cleanedChirp{
+		CleanedChirp: cleanedResponse,
 	})
+
 }
