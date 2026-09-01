@@ -26,6 +26,15 @@ func profanityChecker(messageBody string) string {
 	return strings.Join(cleanWords, " ")
 }
 
+func lengthChecker(messageBody string) bool {
+	if len(messageBody) > 140 {
+		log.Printf("Chirp is too long.")
+		return false
+	} else {
+		return true
+	}
+}
+
 func handlerValidateChirp(w http.ResponseWriter, r *http.Request) {
 	type chirp struct {
 		Body string `json:"body"`
@@ -48,13 +57,14 @@ func handlerValidateChirp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(message.Body) > 140 {
-		log.Printf("Chirp is too long.")
+	if lengthChecker(message.Body) == false {
 		respondWithError(w, http.StatusBadRequest, "Chirp is too long")
 		return
 	}
 
+	CleanedBody := profanityChecker(message.Body)
+
 	respondWithJSON(w, http.StatusOK, cleanedResponse{
-		CleanedString: profanityChecker(message.Body),
+		CleanedString: CleanedBody,
 	})
 }
