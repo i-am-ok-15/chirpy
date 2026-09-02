@@ -4,11 +4,15 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
+	"github.com/i-am-ok-15/chirpy/internal/auth"
+	"github.com/i-am-ok-15/chirpy/internal/database"
 )
 
 func (a *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
 	type newUser struct {
-		Email string `json:"email"`
+		Password string `json:"password"`
+		Email    string `json:"email"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -20,7 +24,16 @@ func (a *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdUser, err := a.dbQueries.CreateUser(r.Context(), userDetails.Email)
+	hashedPassword, err := auth.HashPassword(userDetails.Password)
+	if err != nil {
+		log.Printf("Error hashing password: %s", err)
+		return
+	}
+
+	createdUser, err := a.dbQueries.CreateUser(r.Context(), database.CreateUserParams{
+		Email:          userDetails.Email,
+		HashedPassword: hashedPassword,
+	})
 	if err != nil {
 		log.Printf("Error creating user: %s", err)
 		respondWithError(w, http.StatusBadRequest, "Error creating user")
